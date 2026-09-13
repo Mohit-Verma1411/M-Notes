@@ -8,9 +8,10 @@ import { signIn, signUp } from "@/lib/api"
 interface AuthScreenProps {
   onAuthed: () => void
   onLocal: () => void
+  unavailable?: boolean
 }
 
-export function AuthScreen({ onAuthed, onLocal }: AuthScreenProps) {
+export function AuthScreen({ onAuthed, onLocal, unavailable }: AuthScreenProps) {
   const [mode, setMode] = useState<"signin" | "signup">("signin")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -56,6 +57,14 @@ export function AuthScreen({ onAuthed, onLocal }: AuthScreenProps) {
             : "Keep your notes together, everywhere you write."}
         </p>
 
+        {unavailable && (
+          <div className="mt-7 rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
+            Sign-in isn&apos;t connected to a server on this build yet. Keep your
+            notes on this device for now, or deploy the sync server to enable
+            accounts.
+          </div>
+        )}
+
         <form onSubmit={submit} className="mt-7 space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="auth-email">Email</Label>
@@ -64,6 +73,7 @@ export function AuthScreen({ onAuthed, onLocal }: AuthScreenProps) {
               type="email"
               autoComplete="email"
               required
+              disabled={unavailable}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               className="h-10"
@@ -76,6 +86,7 @@ export function AuthScreen({ onAuthed, onLocal }: AuthScreenProps) {
               type="password"
               autoComplete={mode === "signup" ? "new-password" : "current-password"}
               required
+              disabled={unavailable}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder={mode === "signup" ? "At least 6 characters" : undefined}
@@ -83,8 +94,14 @@ export function AuthScreen({ onAuthed, onLocal }: AuthScreenProps) {
             />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
-          <Button type="submit" disabled={busy} className="h-10 w-full rounded-lg">
-            {busy ? (
+          <Button
+            type="submit"
+            disabled={busy || unavailable}
+            className="h-10 w-full rounded-lg"
+          >
+            {unavailable ? (
+              "Sync not available"
+            ) : busy ? (
               <Loader2 className="size-4 animate-spin" />
             ) : mode === "signin" ? (
               "Sign in"

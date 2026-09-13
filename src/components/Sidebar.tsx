@@ -1,7 +1,8 @@
-import { Feather, LogIn, LogOut, Pin, Plus, Search } from "lucide-react"
+import { Feather, LogIn, LogOut, Moon, Pin, Plus, Search, Sun } from "lucide-react"
+import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { formatRelative, type Note } from "@/lib/notes"
+import { formatRelative, htmlToText, type Note } from "@/lib/notes"
 import type { ApiUser } from "@/lib/api"
 
 interface SidebarProps {
@@ -17,10 +18,11 @@ interface SidebarProps {
 }
 
 function excerpt(note: Note): string {
-  return (note.body.replace(/\s+/g, " ").trim() || note.title || "Untitled").slice(
-    0,
-    90,
-  )
+  return (
+    htmlToText(note.body).replace(/\s+/g, " ").trim() ||
+    note.title ||
+    "Untitled"
+  ).slice(0, 90)
 }
 
 function NoteItem({
@@ -37,10 +39,10 @@ function NoteItem({
       type="button"
       onClick={() => onSelect(note.id)}
       className={cn(
-        "group relative w-full rounded-lg border px-3.5 py-3.5 text-left transition-colors md:py-3",
+        "group relative w-full rounded-lg border px-3.5 py-3.5 text-left transition-all duration-150 hover:-translate-y-px md:py-3",
         active
           ? "border-border bg-card"
-          : "border-transparent hover:bg-white/70",
+          : "border-transparent hover:bg-accent/80",
       )}
     >
       {active && (
@@ -83,6 +85,8 @@ export function Sidebar({
   const pinned = notes.filter((note) => note.pinned)
   const unpinned = notes.filter((note) => !note.pinned)
   const hasQuery = query.trim().length > 0
+  const { theme, setTheme } = useTheme()
+  const isDark = theme === "dark"
 
   return (
     <div className="flex h-full flex-col">
@@ -94,8 +98,18 @@ export function Sidebar({
           <h1 className="font-serif text-xl font-medium tracking-tight">
             M Notes
           </h1>
-          <span className="ml-auto text-xs tabular-nums text-muted-foreground">
-            {notes.length} {notes.length === 1 ? "note" : "notes"}
+          <span className="ml-auto flex items-center gap-1.5">
+            <span className="text-xs tabular-nums text-muted-foreground">
+              {notes.length} {notes.length === 1 ? "note" : "notes"}
+            </span>
+            <button
+              type="button"
+              onClick={() => setTheme(isDark ? "light" : "dark")}
+              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            >
+              {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+            </button>
           </span>
         </div>
 
@@ -114,19 +128,20 @@ export function Sidebar({
             </button>
           </div>
         ) : (
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onAccountSignIn}
-            className="mt-3 inline-flex items-center gap-1 px-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className="mt-3 h-9 justify-start gap-2 rounded-lg text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           >
             <LogIn className="size-3.5" />
-            Sign in to sync notes across devices
-          </button>
+            Log in / Sign up
+          </Button>
         )}
 
         <Button
           onClick={onCreate}
-          className="mt-5 hidden h-10 w-full justify-start gap-2.5 rounded-lg md:flex"
+          className="mt-5 hidden h-10 w-full justify-start gap-2.5 rounded-lg transition-all hover:-translate-y-px active:translate-y-0 md:flex"
         >
           <Plus className="size-4" />
           New note
@@ -142,7 +157,7 @@ export function Sidebar({
             onChange={(event) => onQueryChange(event.target.value)}
             type="text"
             placeholder="Search notes"
-            className="h-10 w-full rounded-lg border border-input bg-card pl-9 pr-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:h-9"
+            className="h-10 w-full rounded-lg border border-input bg-card pl-9 pr-3 text-sm placeholder:text-muted-foreground transition-shadow hover:border-border/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:h-9"
           />
         </div>
       </header>

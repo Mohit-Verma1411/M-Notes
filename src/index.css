@@ -49,9 +49,37 @@
     --ring: 14 77% 44%;
     --radius: 0.5rem;
   }
+
+  .dark {
+    --background: 40 12% 10%;
+    --foreground: 40 20% 88%;
+    --card: 40 12% 13%;
+    --card-foreground: 40 20% 88%;
+    --popover: 40 12% 13%;
+    --popover-foreground: 40 20% 88%;
+    --primary: 14 80% 51%;
+    --primary-foreground: 39 55% 97%;
+    --secondary: 40 12% 20%;
+    --secondary-foreground: 40 20% 88%;
+    --muted: 40 12% 19%;
+    --muted-foreground: 40 10% 60%;
+    --accent: 40 12% 19%;
+    --accent-foreground: 40 20% 88%;
+    --destructive: 3 75% 55%;
+    --destructive-foreground: 40 60% 98%;
+    --border: 40 12% 21%;
+    --input: 40 12% 21%;
+    --ring: 14 80% 51%;
+  }
 }
 
 @layer base {
+  :root {
+    color-scheme: light;
+  }
+  .dark {
+    color-scheme: dark;
+  }
   * {
     @apply border-border;
   }
@@ -68,6 +96,7 @@
     font-feature-settings: "ss01";
     overscroll-behavior-y: none;
     touch-action: manipulation;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
   ::selection {
     background-color: hsl(var(--primary));

@@ -67,9 +67,26 @@ export function createNote(): Note {
   }
 }
 
-export function wordCount(text: string): number {
-  const trimmed = text.trim()
-  return trimmed ? trimmed.split(/\s+/).length : 0
+export function htmlToText(html: string): string {
+  if (!html) return ""
+  const el = document.createElement("div")
+  el.innerHTML = html
+  return (el.textContent ?? "").trim()
+}
+
+export function bodyToHtml(body: string): string {
+  if (!body) return ""
+  if (/<\/?[a-z][a-z0-9]*[^>]*>/i.test(body)) return body
+  return body
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\n/g, "<br>")
+}
+
+export function wordCount(body: string): number {
+  const text = htmlToText(body)
+  return text ? text.split(/\s+/).length : 0
 }
 
 export function formatRelative(ts: number): string {

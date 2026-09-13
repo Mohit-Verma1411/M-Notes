@@ -5,6 +5,7 @@ import {
   createNote,
   loadNotes,
   saveNotes,
+  htmlToText,
   LOCAL_ONLY_IDS,
   type Note,
 } from "@/lib/notes"
@@ -121,7 +122,7 @@ function App() {
     return notes.filter(
       (note) =>
         note.title.toLowerCase().includes(needle) ||
-        note.body.toLowerCase().includes(needle),
+        htmlToText(note.body).toLowerCase().includes(needle),
     )
   }, [notes, query])
 
@@ -208,6 +209,7 @@ function App() {
       <AuthScreen
         onAuthed={handleAuthed}
         onLocal={() => setLocalMode(true)}
+        unavailable={!apiEnabled()}
       />
     )
   }
@@ -258,7 +260,7 @@ function App() {
           type="button"
           onClick={handleCreate}
           aria-label="New note"
-          className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-5 z-20 flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-transform active:scale-95"
+          className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-5 z-20 flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95"
         >
           <Plus className="size-6" />
         </button>

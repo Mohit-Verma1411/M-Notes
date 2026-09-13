@@ -1,8 +1,26 @@
-import { useEffect, useMemo, useRef, useState } from "react"
-import { ArrowLeft, Feather, Pin, PinOff, Plus, Trash2 } from "lucide-react"
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import {
+  ArrowLeft,
+  Bold,
+  Feather,
+  ImagePlus,
+  Italic,
+  Palette,
+  Pin,
+  PinOff,
+  Plus,
+  Trash2,
+  Underline,
+  Upload,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { formatRelative, wordCount, type Note } from "@/lib/notes"
+import {
+  bodyToHtml,
+  formatRelative,
+  wordCount,
+  type Note,
+} from "@/lib/notes"
 
 interface EditorProps {
   note: Note | null
@@ -17,6 +35,54 @@ interface EditorProps {
   onCreate: () => void
   onBack: () => void
   showBack: boolean
+}
+
+const SIZES = [
+  { label: "S", px: 14 },
+  { label: "M", px: 18 },
+  { label: "L", px: 24 },
+  { label: "XL", px: 32 },
+]
+
+const SWATCHES = [
+  "#1f2937",
+  "#57534e",
+  "#9a3412",
+  "#a16207",
+  "#15803d",
+  "#0f766e",
+  "#1d4ed8",
+  "#6d28d9",
+  "#be185d",
+  "#dc2626",
+]
+
+function ToolButton({
+  title,
+  onClick,
+  children,
+  className,
+}: {
+  title: string
+  onClick: () => void
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <button
+      type="button"
+      title={title}
+      aria-label={title}
+      onMouseDown={(event) => event.preventDefault()}
+      onClick={onClick}
+      className={cn(
+        "flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:bg-accent",
+        className,
+      )}
+    >
+      {children}
+    </button>
+  )
 }
 
 function EmptyState({
@@ -66,8 +132,12 @@ export function Editor({
   showBack,
 }: EditorProps) {
   const titleRef = useRef<HTMLInputElement>(null)
-  const bodyRef = useRef<HTMLTextAreaElement>(null)
+  const bodyRef = useRef<HTMLDivElement>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
   const [confirmingFor, setConfirmingFor] = useState<string | null>(null)
+  const [colorOpen, setColorOpen] = useState(false)
+  const [imageOpen, setImageOpen] = useState(false)
+  const [imageUrl, setImageUrl] = useState("")
   const confirming = note?.id === confirmingFor
 
   useEffect(() => {
@@ -80,10 +150,12 @@ export function Editor({
 
   useEffect(() => {
     const el = bodyRef.current
-    if (!el) return
-    el.style.height = "auto"
-    el.style.height = `${el.scrollHeight}px`
-  }, [note?.body, note?.id])
+    if (!el || !note) return
+    const rendered = bodyToHtml(note.body)
+    if (el.innerHTML !== rendered) {
+      el.innerHTML = rendered
+    }
+  }, [note])
 
   const words = useMemo(() => (note ? wordCount(note.body) : 0), [note])
 
@@ -115,6 +187,74 @@ export function Editor({
       return
     }
     onDelete(note.id)
+  }
+
+  const focusEditor = () => {
+    bodyRef.current?.focus()
+  }
+
+  const commit = () => {
+    const el = bodyRef.current
+    if (!el) return
+    onBody(note.id, el.innerHTML)
+  }
+
+  const exec = (command: string) => {
+    focusEditor()
+    document.execCommand(command, false)
+    commit()
+  }
+
+  const wrapSelection = (style: Record<string, string>) => {
+    const sel = window.getSelection()
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return
+    const range = sel.getRangeAt(0)
+    const span = document.createElement("span")
+    Object.assign(span.style, style)
+    const fragment = range.extractContents()
+    span.appendChild(fragment)
+    range.insertNode(span)
+    span.normalize()
+    sel.removeAllRanges()
+    const next = document.createRange()
+    next.selectNodeContents(span)
+    sel.addRange(next)
+  }
+
+  const applyInline = (style: Record<string, string>) => {
+    focusEditor()
+    const sel = window.getSelection()
+    if (!sel || sel.rangeCount === 0) return
+    const range = sel.getRangeAt(0)
+    if (range.collapsed) {
+      const span = document.createElement("span")
+      Object.assign(span.style, style)
+      span.append("\u200b")
+      range.insertNode(span)
+      const next = document.createRange()
+      next.selectNodeContents(span)
+      next.collapse(false)
+      sel.removeAllRanges()
+      sel.addRange(next)
+    } else {
+      wrapSelection(style)
+    }
+    commit()
+  }
+
+  const insertImage = (src: string) => {
+    focusEditor()
+    document.execCommand("insertImage", false, src)
+    commit()
+  }
+
+  const handleUpload = (file: File) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result !== "string") return
+      insertImage(reader.result)
+    }
+    reader.readAsDataURL(file)
   }
 
   return (
@@ -207,14 +347,146 @@ export function Editor({
           Edited {formatRelative(note.updatedAt)}
         </p>
 
-        <textarea
-          ref={bodyRef}
-          value={note.body}
-          onChange={(event) => onBody(note.id, event.target.value)}
-          placeholder="Start writing…"
-          rows={1}
-          className="mt-8 min-h-[50vh] w-full resize-none overflow-hidden bg-transparent font-serif text-lg leading-8 text-foreground/90 outline-none placeholder:text-muted-foreground/40 md:min-h-[40vh] md:text-xl md:leading-9"
-        />
+        <div className="mt-5 flex flex-wrap items-center gap-0.5 border-b border-border pb-3">
+          <ToolButton title="Bold (Ctrl+B)" onClick={() => exec("bold")}>
+            <Bold className="size-4" />
+          </ToolButton>
+          <ToolButton title="Italic (Ctrl+I)" onClick={() => exec("italic")}>
+            <Italic className="size-4" />
+          </ToolButton>
+          <ToolButton title="Underline (Ctrl+U)" onClick={() => exec("underline")}>
+            <Underline className="size-4" />
+          </ToolButton>
+
+          <div className="mx-1.5 h-5 w-px bg-border" />
+
+          <div className="flex items-center gap-0.5">
+            {SIZES.map((size) => (
+              <button
+                key={size.label}
+                type="button"
+                title={`Text size ${size.label}`}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => applyInline({ fontSize: `${size.px}px` })}
+                className="flex h-8 w-7 items-center justify-center rounded-md text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:bg-accent"
+              >
+                {size.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mx-1.5 h-5 w-px bg-border" />
+
+          <ToolButton
+            title="Text color"
+            onClick={() => {
+              setColorOpen((open) => !open)
+              setImageOpen(false)
+            }}
+          >
+            <Palette className="size-4" />
+          </ToolButton>
+          <ToolButton
+            title="Add image"
+            onClick={() => {
+              setImageOpen((open) => !open)
+              setColorOpen(false)
+            }}
+          >
+            <ImagePlus className="size-4" />
+          </ToolButton>
+        </div>
+
+        {colorOpen && (
+          <div
+            className="flex flex-wrap items-center gap-2 pt-3"
+            onMouseDown={(event) => event.preventDefault()}
+          >
+            {SWATCHES.map((swatch) => (
+              <button
+                key={swatch}
+                type="button"
+                title={swatch}
+                onClick={() => applyInline({ color: swatch })}
+                className="size-6 rounded-full border border-white/20 shadow-sm transition-transform hover:scale-110"
+                style={{ backgroundColor: swatch }}
+                aria-label={`Text color ${swatch}`}
+              />
+            ))}
+          </div>
+        )}
+
+        {imageOpen && (
+          <div
+            className="flex flex-wrap items-center gap-2 pt-3"
+            onMouseDown={(event) => event.preventDefault()}
+          >
+            <input
+              type="text"
+              value={imageUrl}
+              onChange={(event) => setImageUrl(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && imageUrl.trim()) {
+                  insertImage(imageUrl.trim())
+                  setImageUrl("")
+                }
+              }}
+              placeholder="Paste an image URL"
+              className="h-9 w-full max-w-[16rem] rounded-lg border border-input bg-card px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => {
+                if (imageUrl.trim()) {
+                  insertImage(imageUrl.trim())
+                  setImageUrl("")
+                }
+              }}
+            >
+              Add
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => fileRef.current?.click()}
+            >
+              <Upload className="size-3.5" />
+              Upload
+            </Button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0]
+                if (file) handleUpload(file)
+                event.target.value = ""
+              }}
+            />
+          </div>
+        )}
+
+        <div className="relative">
+          <div
+            ref={bodyRef}
+            contentEditable
+            suppressContentEditableWarning
+            lang="en"
+            onInput={commit}
+            className="relative mt-6 min-h-[50vh] w-full bg-transparent font-serif text-lg leading-8 text-foreground/90 outline-none [&_a]:underline [&_img]:my-2 [&_img]:max-w-full [&_img]:rounded-lg [&_img]:shadow-sm md:min-h-[40vh] md:text-xl md:leading-9"
+          />
+          {!note.body && (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute left-0 top-6 font-serif text-lg text-muted-foreground/40 md:text-xl"
+            >
+              Start writing…
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
