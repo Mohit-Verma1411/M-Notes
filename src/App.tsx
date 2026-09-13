@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
+import { Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   createNote,
@@ -109,7 +110,7 @@ function App() {
   const editorHidden = isMobile && mobileView === "list"
 
   return (
-    <div className="flex h-dvh w-full overflow-hidden">
+    <div className="flex h-dvh w-full overflow-hidden pt-[env(safe-area-inset-top)]">
       <aside
         className={cn(
           "w-full shrink-0 border-r md:w-80",
@@ -141,6 +142,17 @@ function App() {
           showBack={isMobile && mobileView === "editor"}
         />
       </main>
+
+      {isMobile && mobileView === "list" && (
+        <button
+          type="button"
+          onClick={handleCreate}
+          aria-label="New note"
+          className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-5 z-20 flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-transform active:scale-95"
+        >
+          <Plus className="size-6" />
+        </button>
+      )}
     </div>
   )
 }

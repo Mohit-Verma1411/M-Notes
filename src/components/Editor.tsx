@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
-import { ArrowLeft, Feather, Pin, PinOff, Trash2 } from "lucide-react"
+import { ArrowLeft, Feather, Pin, PinOff, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { formatRelative, wordCount, type Note } from "@/lib/notes"
@@ -79,11 +79,12 @@ export function Editor({
     return (
       <div className="flex h-full flex-col">
         {showBack && (
-          <header className="flex items-center gap-1 px-4 pt-4">
+          <header className="sticky top-0 z-10 flex items-center gap-1 border-b bg-card/90 px-2 pt-2 backdrop-blur">
             <Button
               variant="ghost"
               size="icon"
               onClick={onBack}
+              className="size-10"
               aria-label="Back to notes"
             >
               <ArrowLeft className="size-5" />
@@ -107,24 +108,39 @@ export function Editor({
   return (
     <div className="flex h-full flex-col overflow-y-auto bg-card">
       {showBack && (
-        <header className="flex items-center gap-1 px-4 pt-4 md:hidden">
+        <header className="sticky top-0 z-10 flex items-center gap-1 border-b bg-card/90 px-2 pt-2 backdrop-blur">
           <Button
             variant="ghost"
             size="icon"
             onClick={onBack}
+            className="size-10"
             aria-label="Back to notes"
           >
             <ArrowLeft className="size-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onCreate}
+            className="ml-auto size-10"
+            aria-label="New note"
+          >
+            <Plus className="size-5" />
           </Button>
         </header>
       )}
 
       <div
         key={note.id}
-        className="animate-note-in mx-auto w-full max-w-3xl flex-1 px-6 pb-28 pt-6 md:px-12 md:pt-10"
+        className="animate-note-in mx-auto w-full max-w-3xl flex-1 px-6 pb-[max(7rem,calc(2rem+env(safe-area-inset-bottom)))] pt-6 md:px-12 md:pt-10"
       >
         <div className="flex items-center gap-1.5">
-          <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground md:hidden">
+            <span className="tabular-nums">
+              {words} {words === 1 ? "word" : "words"}
+            </span>
+          </span>
+          <span className="ml-auto hidden items-center gap-1.5 text-xs text-muted-foreground md:flex">
             <span className="tabular-nums">
               {words} {words === 1 ? "word" : "words"}
             </span>
@@ -139,7 +155,7 @@ export function Editor({
             variant="ghost"
             size="icon"
             onClick={() => onTogglePin(note.id)}
-            className="text-muted-foreground"
+            className="size-10 text-muted-foreground md:size-9"
             aria-label={note.pinned ? "Unpin note" : "Pin note"}
           >
             {note.pinned ? (
@@ -153,7 +169,7 @@ export function Editor({
             size="icon"
             onClick={handleDelete}
             className={cn(
-              "text-muted-foreground transition-colors",
+              "size-10 text-muted-foreground transition-colors md:size-9",
               confirming
                 ? "bg-destructive text-destructive-foreground"
                 : "hover:text-destructive",
@@ -173,7 +189,7 @@ export function Editor({
           value={note.title}
           onChange={(event) => onTitle(note.id, event.target.value)}
           placeholder="Untitled"
-          className="mt-12 w-full bg-transparent font-serif text-3xl font-medium leading-tight tracking-tight outline-none placeholder:text-muted-foreground/40 md:text-5xl md:leading-[1.1]"
+          className="mt-8 w-full bg-transparent font-serif text-3xl font-medium leading-tight tracking-tight outline-none placeholder:text-muted-foreground/40 md:mt-12 md:text-5xl md:leading-[1.1]"
         />
         <p className="mt-3 text-xs text-muted-foreground">
           Edited {formatRelative(note.updatedAt)}
@@ -185,7 +201,7 @@ export function Editor({
           onChange={(event) => onBody(note.id, event.target.value)}
           placeholder="Start writing…"
           rows={1}
-          className="mt-8 min-h-[40vh] w-full resize-none overflow-hidden bg-transparent font-serif text-lg leading-8 text-foreground/90 outline-none placeholder:text-muted-foreground/40 md:text-xl md:leading-9"
+          className="mt-8 min-h-[50vh] w-full resize-none overflow-hidden bg-transparent font-serif text-lg leading-8 text-foreground/90 outline-none placeholder:text-muted-foreground/40 md:min-h-[40vh] md:text-xl md:leading-9"
         />
       </div>
     </div>

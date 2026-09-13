@@ -60,9 +60,14 @@
   #root {
     height: 100%;
   }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "ss01";
+    overscroll-behavior-y: none;
+    touch-action: manipulation;
   }
   ::selection {
     background-color: hsl(var(--primary));

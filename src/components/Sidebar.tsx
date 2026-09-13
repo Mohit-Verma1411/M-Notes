@@ -33,14 +33,14 @@ function NoteItem({
       type="button"
       onClick={() => onSelect(note.id)}
       className={cn(
-        "group relative w-full rounded-lg border px-3.5 py-3 text-left transition-colors",
+        "group relative w-full rounded-lg border px-3.5 py-3.5 text-left transition-colors md:py-3",
         active
           ? "border-border bg-card"
           : "border-transparent hover:bg-white/70",
       )}
     >
       {active && (
-        <span className="absolute bottom-3 left-0 top-3 w-[3px] rounded-full bg-primary" />
+        <span className="absolute bottom-3.5 left-0 top-3.5 w-[3px] rounded-full bg-primary md:bottom-3 md:top-3" />
       )}
       <div className="flex items-baseline justify-between gap-2">
         <h3
@@ -79,7 +79,7 @@ export function Sidebar({
 
   return (
     <div className="flex h-full flex-col">
-      <header className="border-b px-4 pb-4 pt-6">
+      <header className="border-b px-4 pb-4 pt-4 md:pt-6">
         <div className="flex items-center gap-2.5 px-1">
           <span className="flex size-7 items-center justify-center rounded-md bg-primary">
             <Feather className="size-4 text-primary-foreground" />
@@ -94,7 +94,7 @@ export function Sidebar({
 
         <Button
           onClick={onCreate}
-          className="mt-5 h-10 w-full justify-start gap-2.5 rounded-lg"
+          className="mt-5 hidden h-10 w-full justify-start gap-2.5 rounded-lg md:flex"
         >
           <Plus className="size-4" />
           New note
@@ -110,12 +110,12 @@ export function Sidebar({
             onChange={(event) => onQueryChange(event.target.value)}
             type="text"
             placeholder="Search notes"
-            className="h-9 w-full rounded-lg border border-input bg-card pl-9 pr-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="h-10 w-full rounded-lg border border-input bg-card pl-9 pr-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:h-9"
           />
         </div>
       </header>
 
-      <nav className="flex-1 overflow-y-auto p-3">
+      <nav className="flex-1 overflow-y-auto p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         {notes.length === 0 ? (
           <p className="px-3 py-8 text-sm leading-relaxed text-muted-foreground">
             No notes yet. Start one — ideas don&apos;t keep.
