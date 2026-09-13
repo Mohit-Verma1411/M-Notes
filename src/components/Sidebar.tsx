@@ -128,7 +128,7 @@ export function Sidebar({
         {account && (
           <div className="mt-3 flex items-center gap-2 px-1">
             <span className="truncate text-xs text-muted-foreground">
-              {account.email}
+              {account.username}
             </span>
             <button
               type="button"

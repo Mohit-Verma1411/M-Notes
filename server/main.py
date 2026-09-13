@@ -47,7 +47,7 @@ def init_db() -> None:
             """
             CREATE TABLE IF NOT EXISTS users (
               id         INTEGER PRIMARY KEY AUTOINCREMENT,
-              email      TEXT NOT NULL UNIQUE,
+              username   TEXT NOT NULL UNIQUE,
               pw_hash    TEXT NOT NULL,
               created_at INTEGER NOT NULL
             );
@@ -70,6 +70,9 @@ def init_db() -> None:
             );
             """
         )
+        columns = {row[1] for row in conn.execute("PRAGMA table_info(users)")}
+        if "email" in columns and "username" not in columns:
+            conn.execute("ALTER TABLE users RENAME COLUMN email TO username")
 
 
 init_db()
@@ -113,7 +116,7 @@ def user_row_for_token(token: str) -> sqlite3.Row | None:
     with connect() as conn:
         row = conn.execute(
             """
-            SELECT u.id, u.email, u.created_at AS user_created,
+            SELECT u.id, u.username, u.created_at AS user_created,
                    t.created_at AS token_created
             FROM tokens t
             JOIN users u ON u.id = t.user_id
@@ -145,7 +148,7 @@ def require_user(
 
 
 class Credentials(BaseModel):
-    email: str
+    username: str
     password: str
 
 
@@ -161,7 +164,7 @@ class NotePayload(BaseModel):
 def user_dict(row: sqlite3.Row) -> dict:
     return {
         "id": row["id"],
-        "email": row["email"],
+        "username": row["username"],
         "createdAt": row["user_created"],
     }
 
@@ -179,10 +182,13 @@ def note_dict(row: sqlite3.Row) -> dict:
 
 @app.post("/api/auth/signup")
 def signup(body: Credentials):
-    email = (body.email or "").strip().lower()
+    username = (body.username or "").strip()
     password = body.password or ""
-    if "@" not in email or "." not in email.split("@")[-1]:
-        raise HTTPException(status_code=400, detail="Enter a valid email")
+    if not (2 <= len(username) <= 32) or any(ch.isspace() for ch in username):
+        raise HTTPException(
+            status_code=400,
+            detail="Username must be 2–32 characters with no spaces",
+        )
     if len(password) < 6:
         raise HTTPException(
             status_code=400, detail="Password must be at least 6 characters"
@@ -191,8 +197,8 @@ def signup(body: Credentials):
     try:
         with connect() as conn:
             cur = conn.execute(
-                "INSERT INTO users (email, pw_hash, created_at) VALUES (?, ?, ?)",
-                (email, hash_password(password), now),
+                "INSERT INTO users (username, pw_hash, created_at) VALUES (?, ?, ?)",
+                (username, hash_password(password), now),
             )
             user_id = cur.lastrowid
             conn.execute(
@@ -212,12 +218,12 @@ def signup(body: Credentials):
             )
     except sqlite3.IntegrityError:
         raise HTTPException(
-            status_code=409, detail="An account with that email already exists"
+            status_code=409, detail="That username is already taken"
         )
     token = create_token(user_id)
     with connect() as conn:
         user = conn.execute(
-            "SELECT id, email, created_at AS user_created FROM users WHERE id = ?",
+            "SELECT id, username, created_at AS user_created FROM users WHERE id = ?",
             (user_id,),
         ).fetchone()
     return {"token": token, "user": user_dict(user)}
@@ -225,17 +231,17 @@ def signup(body: Credentials):
 
 @app.post("/api/auth/login")
 def login(body: Credentials):
-    email = (body.email or "").strip().lower()
+    username = (body.username or "").strip()
     with connect() as conn:
         row = conn.execute(
-            "SELECT * FROM users WHERE email = ?", (email,)
+            "SELECT * FROM users WHERE username = ?", (username,)
         ).fetchone()
     if row is None or not verify_password(body.password or "", row["pw_hash"]):
-        raise HTTPException(status_code=401, detail="Incorrect email or password")
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
     token = create_token(row["id"])
     user = {
         "id": row["id"],
-        "email": row["email"],
+        "username": row["username"],
         "createdAt": row["created_at"],
     }
     return {"token": token, "user": user}

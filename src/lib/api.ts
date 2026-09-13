@@ -2,7 +2,7 @@ import type { Note } from "@/lib/notes"
 
 export interface ApiUser {
   id: number
-  email: string
+  username: string
   createdAt: number
 }
 
@@ -64,19 +64,19 @@ interface AuthResponse {
   user: ApiUser
 }
 
-export async function signUp(email: string, password: string): Promise<AuthResponse> {
+export async function signUp(username: string, password: string): Promise<AuthResponse> {
   const data = await request<AuthResponse>("/api/auth/signup", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ username, password }),
   })
   saveToken(data.token)
   return data
 }
 
-export async function signIn(email: string, password: string): Promise<AuthResponse> {
+export async function signIn(username: string, password: string): Promise<AuthResponse> {
   const data = await request<AuthResponse>("/api/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ username, password }),
   })
   saveToken(data.token)
   return data

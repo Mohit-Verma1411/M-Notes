@@ -13,7 +13,7 @@ interface AuthScreenProps {
 
 export function AuthScreen({ onAuthed, onLocal, unavailable }: AuthScreenProps) {
   const [mode, setMode] = useState<"signin" | "signup">("signin")
-  const [email, setEmail] = useState("")
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -24,9 +24,9 @@ export function AuthScreen({ onAuthed, onLocal, unavailable }: AuthScreenProps) 
     setBusy(true)
     try {
       if (mode === "signup") {
-        await signUp(email, password)
+        await signUp(username.trim(), password)
       } else {
-        await signIn(email, password)
+        await signIn(username.trim(), password)
       }
       onAuthed()
     } catch (err) {
@@ -67,15 +67,18 @@ export function AuthScreen({ onAuthed, onLocal, unavailable }: AuthScreenProps) 
 
         <form onSubmit={submit} className="mt-7 space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="auth-email">Email</Label>
+            <Label htmlFor="auth-username">Username</Label>
             <Input
-              id="auth-email"
-              type="email"
-              autoComplete="email"
+              id="auth-username"
+              type="text"
+              autoComplete="username"
               required
               disabled={unavailable}
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              placeholder="Choose a username"
+              minLength={2}
+              maxLength={32}
               className="h-10"
             />
           </div>
