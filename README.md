@@ -29,4 +29,4 @@ The output is `bundle.html` — a single HTML file with all JS, CSS, and fonts i
 
 React + TypeScript + Tailwind CSS (shadcn/ui theming), bundled with Parcel. Typography: Newsreader (writing surface) and Space Grotesk (UI), self-hosted.
 
-> Live demo: GitHub Pages — deployed from `bundle.html` via `gh pages deploy`.
+> Live demo: [mohit-verma1411.github.io/M-Notes](https://mohit-verma1411.github.io/M-Notes/) — deployed from `bundle.html` via `gh pages deploy`.
