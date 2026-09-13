@@ -1,4 +1,4 @@
-# Marginalia
+# M Notes
 
 A quiet, paper-toned note app. Create, edit, pin, search, and delete notes — all saved locally in your browser. No accounts, no sync, no noise.
 

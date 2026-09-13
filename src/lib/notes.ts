@@ -16,7 +16,7 @@ function uid(): string {
 const seed: Note[] = [
   {
     id: "welcome",
-    title: "Welcome to Marginalia",
+    title: "Welcome to M Notes",
     body:
       "This is a quiet place to keep notes. Everything you write here stays on this device — there are no accounts, no sync, no noise.\n\nA few things to try:\n\n• Press ⌘N (Ctrl+N on Windows) to start a new note\n• Pin anything important with the pin icon above\n• Search across every note from the field in the sidebar\n\nYour notes are saved as you type, so you can close the tab and pick up where you left off.",
     pinned: true,

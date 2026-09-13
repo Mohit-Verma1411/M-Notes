@@ -85,7 +85,7 @@ export function Sidebar({
             <Feather className="size-4 text-primary-foreground" />
           </span>
           <h1 className="font-serif text-xl font-medium tracking-tight">
-            Marginalia
+            M Notes
           </h1>
           <span className="ml-auto text-xs tabular-nums text-muted-foreground">
             {notes.length} {notes.length === 1 ? "note" : "notes"}
