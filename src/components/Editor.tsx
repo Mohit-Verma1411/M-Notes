@@ -140,6 +140,7 @@ export function Editor({
   const [imageUrl, setImageUrl] = useState("")
   const [hint, setHint] = useState<string | null>(null)
   const hintTimer = useRef<number | undefined>(undefined)
+  const [keyboardInset, setKeyboardInset] = useState(0)
   const confirming = note?.id === confirmingFor
 
   useEffect(() => {
@@ -158,6 +159,22 @@ export function Editor({
       el.innerHTML = rendered
     }
   }, [note])
+
+  useEffect(() => {
+    const viewport = window.visualViewport
+    if (!viewport) return
+    const update = () => {
+      const gap = window.innerHeight - (viewport.offsetTop + viewport.height)
+      setKeyboardInset(Math.max(0, Math.round(gap)))
+    }
+    update()
+    viewport.addEventListener("resize", update)
+    viewport.addEventListener("scroll", update)
+    return () => {
+      viewport.removeEventListener("resize", update)
+      viewport.removeEventListener("scroll", update)
+    }
+  }, [])
 
   const words = useMemo(() => (note ? wordCount(note.body) : 0), [note])
 
@@ -373,7 +390,10 @@ export function Editor({
         </div>
       </div>
 
-      <div className="pointer-events-none fixed bottom-5 left-1/2 z-40 flex -translate-x-1/2 flex-col items-center gap-2 px-4 md:bottom-7 md:left-[calc(50%+10rem)]">
+      <div
+        className="pointer-events-none fixed bottom-5 left-1/2 z-40 flex -translate-x-1/2 flex-col items-center gap-2 px-4 md:bottom-7 md:left-[calc(50%+10rem)]"
+        style={keyboardInset > 0 ? { bottom: keyboardInset + 20 } : undefined}
+      >
         {hint && (
           <span className="mb-1 whitespace-nowrap rounded-md bg-foreground px-2.5 py-1 text-[11px] font-medium text-background shadow-lg">
             {hint}
