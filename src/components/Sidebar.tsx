@@ -130,9 +130,9 @@ export function Sidebar({
         ) : (
           <Button
             type="button"
-            variant="ghost"
             onClick={onAccountSignIn}
-            className="mt-3 h-9 justify-start gap-2 rounded-full text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            className="mt-3 h-9 justify-start gap-2 rounded-full text-xs font-medium text-primary-foreground shadow-sm shadow-primary/30 transition-all hover:-translate-y-px hover:brightness-105 active:translate-y-0 active:brightness-95"
+            style={{ backgroundColor: "hsl(var(--primary))" }}
           >
             <LogIn className="size-3.5" />
             Log in / Sign up
