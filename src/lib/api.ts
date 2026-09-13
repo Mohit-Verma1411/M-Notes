@@ -6,7 +6,7 @@ export interface ApiUser {
   createdAt: number
 }
 
-export const API_BASE_URL = ""
+export const API_BASE_URL = "https://interests-rubber-newsletter-glasgow.trycloudflare.com"
 
 const TOKEN_KEY = "m-notes.token"
 
