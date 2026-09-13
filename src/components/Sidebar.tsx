@@ -110,10 +110,22 @@ export function Sidebar({
             >
               {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
             </button>
+            {!account && (
+              <button
+                type="button"
+                onClick={onAccountSignIn}
+                title="Log in / Sign up"
+                aria-label="Log in / Sign up"
+                className="flex size-8 items-center justify-center rounded-full text-primary-foreground shadow-sm shadow-primary/30 transition-all hover:-translate-y-px hover:brightness-105 active:translate-y-0 active:brightness-95"
+                style={{ backgroundColor: "hsl(var(--primary))" }}
+              >
+                <LogIn className="size-4" />
+              </button>
+            )}
           </span>
         </div>
 
-        {account ? (
+        {account && (
           <div className="mt-3 flex items-center gap-2 px-1">
             <span className="truncate text-xs text-muted-foreground">
               {account.email}
@@ -127,16 +139,6 @@ export function Sidebar({
               Sign out
             </button>
           </div>
-        ) : (
-          <Button
-            type="button"
-            onClick={onAccountSignIn}
-            className="mt-3 h-9 justify-start gap-2 rounded-full text-xs font-medium text-primary-foreground shadow-sm shadow-primary/30 transition-all hover:-translate-y-px hover:brightness-105 active:translate-y-0 active:brightness-95"
-            style={{ backgroundColor: "hsl(var(--primary))" }}
-          >
-            <LogIn className="size-3.5" />
-            Log in / Sign up
-          </Button>
         )}
 
         <Button
