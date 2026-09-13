@@ -1,12 +1,16 @@
-import { Feather, Pin, Plus, Search } from "lucide-react"
+import { Feather, LogIn, LogOut, Pin, Plus, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { formatRelative, type Note } from "@/lib/notes"
+import type { ApiUser } from "@/lib/api"
 
 interface SidebarProps {
   notes: Note[]
   activeId: string | null
   query: string
+  account: ApiUser | null
+  onAccountSignIn: () => void
+  onAccountSignOut: () => void
   onQueryChange: (query: string) => void
   onSelect: (id: string) => void
   onCreate: () => void
@@ -69,6 +73,9 @@ export function Sidebar({
   notes,
   activeId,
   query,
+  account,
+  onAccountSignIn,
+  onAccountSignOut,
   onQueryChange,
   onSelect,
   onCreate,
@@ -91,6 +98,31 @@ export function Sidebar({
             {notes.length} {notes.length === 1 ? "note" : "notes"}
           </span>
         </div>
+
+        {account ? (
+          <div className="mt-3 flex items-center gap-2 px-1">
+            <span className="truncate text-xs text-muted-foreground">
+              {account.email}
+            </span>
+            <button
+              type="button"
+              onClick={onAccountSignOut}
+              className="ml-auto inline-flex shrink-0 items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <LogOut className="size-3.5" />
+              Sign out
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={onAccountSignIn}
+            className="mt-3 inline-flex items-center gap-1 px-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <LogIn className="size-3.5" />
+            Sign in to sync notes across devices
+          </button>
+        )}
 
         <Button
           onClick={onCreate}

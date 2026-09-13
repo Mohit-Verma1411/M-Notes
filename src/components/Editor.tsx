@@ -7,6 +7,7 @@ import { formatRelative, wordCount, type Note } from "@/lib/notes"
 interface EditorProps {
   note: Note | null
   count: number
+  synced: boolean
   freshId: string | null
   onClearFresh: () => void
   onTitle: (id: string, title: string) => void
@@ -18,7 +19,15 @@ interface EditorProps {
   showBack: boolean
 }
 
-function EmptyState({ onCreate, count }: { onCreate: () => void; count: number }) {
+function EmptyState({
+  onCreate,
+  count,
+  synced,
+}: {
+  onCreate: () => void
+  count: number
+  synced: boolean
+}) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-8 pb-16 text-center">
       <Feather className="mb-6 size-7 text-muted-foreground/40" />
@@ -34,7 +43,9 @@ function EmptyState({ onCreate, count }: { onCreate: () => void; count: number }
         New note
       </Button>
       <p className="mt-12 text-xs text-muted-foreground/70">
-        {count} {count === 1 ? "note" : "notes"} saved on this device
+        {synced
+          ? "Notes sync to your account as you type"
+          : `${count} ${count === 1 ? "note" : "notes"} saved on this device`}
       </p>
     </div>
   )
@@ -43,6 +54,7 @@ function EmptyState({ onCreate, count }: { onCreate: () => void; count: number }
 export function Editor({
   note,
   count,
+  synced,
   freshId,
   onClearFresh,
   onTitle,
@@ -91,7 +103,7 @@ export function Editor({
             </Button>
           </header>
         )}
-        <EmptyState onCreate={onCreate} count={count} />
+        <EmptyState onCreate={onCreate} count={count} synced={synced} />
       </div>
     )
   }

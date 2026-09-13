@@ -9,6 +9,8 @@ export interface Note {
 
 const STORAGE_KEY = "marginalia.notes.v1"
 
+export const LOCAL_ONLY_IDS = new Set<string>(["welcome", "habits"])
+
 function uid(): string {
   return Math.random().toString(36).slice(2, 9) + Date.now().toString(36)
 }
@@ -18,7 +20,7 @@ const seed: Note[] = [
     id: "welcome",
     title: "Welcome to M Notes",
     body:
-      "This is a quiet place to keep notes. Everything you write here stays on this device — there are no accounts, no sync, no noise.\n\nA few things to try:\n\n• Press ⌘N (Ctrl+N on Windows) to start a new note\n• Pin anything important with the pin icon above\n• Search across every note from the field in the sidebar\n\nYour notes are saved as you type, so you can close the tab and pick up where you left off.",
+      "A quiet place to keep notes. Everything you write here stays in this browser until you sign in.\n\nIf you create an account, your notes follow you to any device and sync as you type.\n\nA few things to try:\n\n• Press Ctrl+N (Cmd+N on Mac) to start a new note\n• Pin anything important with the pin icon above\n• Search across every note from the field in the sidebar\n\nYour notes are saved as you type, so you can close the tab and pick up where you left off.",
     pinned: true,
     createdAt: Date.now() - 86400000,
     updatedAt: Date.now() - 7200000,
