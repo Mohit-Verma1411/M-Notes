@@ -138,6 +138,8 @@ export function Editor({
   const [colorOpen, setColorOpen] = useState(false)
   const [imageOpen, setImageOpen] = useState(false)
   const [imageUrl, setImageUrl] = useState("")
+  const [hint, setHint] = useState<string | null>(null)
+  const hintTimer = useRef<number | undefined>(undefined)
   const confirming = note?.id === confirmingFor
 
   useEffect(() => {
@@ -193,6 +195,17 @@ export function Editor({
     bodyRef.current?.focus()
   }
 
+  const hasSelection = () => {
+    const sel = window.getSelection()
+    return !!sel && sel.rangeCount > 0 && !sel.isCollapsed
+  }
+
+  const showHint = (message: string) => {
+    setHint(message)
+    window.clearTimeout(hintTimer.current)
+    hintTimer.current = window.setTimeout(() => setHint(null), 1600)
+  }
+
   const commit = () => {
     const el = bodyRef.current
     if (!el) return
@@ -201,6 +214,10 @@ export function Editor({
 
   const exec = (command: string) => {
     focusEditor()
+    if (!hasSelection()) {
+      showHint("Select text first")
+      return
+    }
     document.execCommand(command, false)
     commit()
   }
@@ -223,22 +240,11 @@ export function Editor({
 
   const applyInline = (style: Record<string, string>) => {
     focusEditor()
-    const sel = window.getSelection()
-    if (!sel || sel.rangeCount === 0) return
-    const range = sel.getRangeAt(0)
-    if (range.collapsed) {
-      const span = document.createElement("span")
-      Object.assign(span.style, style)
-      span.append("\u200b")
-      range.insertNode(span)
-      const next = document.createRange()
-      next.selectNodeContents(span)
-      next.collapse(false)
-      sel.removeAllRanges()
-      sel.addRange(next)
-    } else {
-      wrapSelection(style)
+    if (!hasSelection()) {
+      showHint("Select text first")
+      return
     }
+    wrapSelection(style)
     commit()
   }
 
@@ -347,7 +353,34 @@ export function Editor({
           Edited {formatRelative(note.updatedAt)}
         </p>
 
-        <div className="mt-5 flex flex-wrap items-center gap-0.5 border-b border-border pb-3">
+        <div className="relative">
+          <div
+            ref={bodyRef}
+            contentEditable
+            suppressContentEditableWarning
+            lang="en"
+            onInput={commit}
+            className="relative mt-6 min-h-[50vh] w-full bg-transparent font-serif text-lg leading-8 text-foreground/90 outline-none [&_a]:underline [&_img]:my-2 [&_img]:max-w-full [&_img]:rounded-lg [&_img]:shadow-sm md:min-h-[40vh] md:text-xl md:leading-9"
+          />
+          {!note.body && (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute left-0 top-6 font-serif text-lg text-muted-foreground/40 md:text-xl"
+            >
+              Start writing…
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="pointer-events-none fixed bottom-5 left-1/2 z-40 flex -translate-x-1/2 flex-col items-center gap-2 px-4 md:bottom-7 md:left-[calc(50%+10rem)]">
+        {hint && (
+          <span className="mb-1 whitespace-nowrap rounded-md bg-foreground px-2.5 py-1 text-[11px] font-medium text-background shadow-lg">
+            {hint}
+          </span>
+        )}
+
+        <div className="pointer-events-auto flex items-center gap-0.5 rounded-full border border-border bg-card/80 px-2 py-1.5 shadow-xl shadow-black/5 backdrop-blur-md">
           <ToolButton title="Bold (Ctrl+B)" onClick={() => exec("bold")}>
             <Bold className="size-4" />
           </ToolButton>
@@ -358,7 +391,7 @@ export function Editor({
             <Underline className="size-4" />
           </ToolButton>
 
-          <div className="mx-1.5 h-5 w-px bg-border" />
+          <div className="mx-1 h-5 w-px bg-border" />
 
           <div className="flex items-center gap-0.5">
             {SIZES.map((size) => (
@@ -368,14 +401,14 @@ export function Editor({
                 title={`Text size ${size.label}`}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => applyInline({ fontSize: `${size.px}px` })}
-                className="flex h-8 w-7 items-center justify-center rounded-md text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:bg-accent"
+                className="flex h-9 w-7 items-center justify-center rounded-full text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:bg-accent"
               >
                 {size.label}
               </button>
             ))}
           </div>
 
-          <div className="mx-1.5 h-5 w-px bg-border" />
+          <div className="mx-1 h-5 w-px bg-border" />
 
           <ToolButton
             title="Text color"
@@ -398,15 +431,13 @@ export function Editor({
         </div>
 
         {colorOpen && (
-          <div
-            className="flex flex-wrap items-center gap-2 pt-3"
-            onMouseDown={(event) => event.preventDefault()}
-          >
+          <div className="pointer-events-auto flex flex-wrap items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-2 shadow-xl shadow-black/5 backdrop-blur-md">
             {SWATCHES.map((swatch) => (
               <button
                 key={swatch}
                 type="button"
                 title={swatch}
+                onMouseDown={(event) => event.preventDefault()}
                 onClick={() => applyInline({ color: swatch })}
                 className="size-6 rounded-full border border-white/20 shadow-sm transition-transform hover:scale-110"
                 style={{ backgroundColor: swatch }}
@@ -417,10 +448,7 @@ export function Editor({
         )}
 
         {imageOpen && (
-          <div
-            className="flex flex-wrap items-center gap-2 pt-3"
-            onMouseDown={(event) => event.preventDefault()}
-          >
+          <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-2 shadow-xl shadow-black/5 backdrop-blur-md">
             <input
               type="text"
               value={imageUrl}
@@ -432,29 +460,30 @@ export function Editor({
                 }
               }}
               placeholder="Paste an image URL"
-              className="h-9 w-full max-w-[16rem] rounded-lg border border-input bg-card px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="h-8 w-full max-w-[14rem] rounded-full border border-input bg-card px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
-            <Button
+            <button
               type="button"
-              size="sm"
+              onMouseDown={(event) => event.preventDefault()}
               onClick={() => {
                 if (imageUrl.trim()) {
                   insertImage(imageUrl.trim())
                   setImageUrl("")
                 }
               }}
+              className="flex h-8 min-w-14 items-center justify-center rounded-full bg-primary px-3 text-xs font-medium text-primary-foreground transition-transform hover:scale-105 active:scale-95"
             >
               Add
-            </Button>
-            <Button
+            </button>
+            <button
               type="button"
-              variant="ghost"
-              size="sm"
+              onMouseDown={(event) => event.preventDefault()}
               onClick={() => fileRef.current?.click()}
+              className="flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <Upload className="size-3.5" />
               Upload
-            </Button>
+            </button>
             <input
               ref={fileRef}
               type="file"
@@ -468,25 +497,6 @@ export function Editor({
             />
           </div>
         )}
-
-        <div className="relative">
-          <div
-            ref={bodyRef}
-            contentEditable
-            suppressContentEditableWarning
-            lang="en"
-            onInput={commit}
-            className="relative mt-6 min-h-[50vh] w-full bg-transparent font-serif text-lg leading-8 text-foreground/90 outline-none [&_a]:underline [&_img]:my-2 [&_img]:max-w-full [&_img]:rounded-lg [&_img]:shadow-sm md:min-h-[40vh] md:text-xl md:leading-9"
-          />
-          {!note.body && (
-            <div
-              aria-hidden
-              className="pointer-events-none absolute left-0 top-6 font-serif text-lg text-muted-foreground/40 md:text-xl"
-            >
-              Start writing…
-            </div>
-          )}
-        </div>
       </div>
     </div>
   )
